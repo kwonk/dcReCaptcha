@@ -15,12 +15,12 @@
 
 require_once(dirname(__FILE__).'/lib.google.recaptcha.php');
 
-class dcReCaptcha 
+class dcReCaptcha
 {
 	protected $core;
 	protected $blog_settings;
 	protected $settings;
-	
+
 	/**
 	 * Class constructor
 	 *
@@ -30,12 +30,12 @@ class dcReCaptcha
 	{
 		$core->blog->settings->addNamespace('dcReCaptcha');
 		$this->blog_settings =& $core->blog->settings->dcReCaptcha;
-		
+
 		$public_key = $this->blog_settings->reCaptcha_public_key;
 		$private_key = $this->blog_settings->reCaptcha_private_key;
 		$theme = $this->blog_settings->reCaptcha_theme;
 		$comments_form_enable = $this->blog_settings->reCaptcha_comments_form_enable;
-		
+
 		$this->settings = array(
 				'public_key' => $public_key,
 				'private_key' => $private_key,
@@ -43,7 +43,7 @@ class dcReCaptcha
 				'comments_form_enable' => $comments_form_enable
 				);
 
-	}	
+	}
 
 	public function setSettings($public_key,$private_key,$theme,$comments_form_enable) {
 		$this->settings = array(
@@ -51,40 +51,33 @@ class dcReCaptcha
 				'private_key' => $private_key,
 				'theme' => $theme,
 				'comments_form_enable' => $comments_form_enable
-		);		
+		);
 	}
-		
+
 	public function getSettings() {
 		return $this->settings;
 	}
 
 	public function checkAnswer() {
-		
-		if (!isset($_POST["recaptcha_challenge_field"]) || !isset($_POST["recaptcha_response_field"])) {
+		if (!isset($_POST["g-recaptcha-response"])) {
 			return null;
-		} else {
-			$recaptcha_challenge_field = $_POST["recaptcha_challenge_field"];
-			$recaptcha_response_field = $_POST["recaptcha_response_field"];
 		}
-		
-		$resp = recaptcha_check_answer($this->settings['private_key'],
-				http::realIP(),
-				$recaptcha_challenge_field,
-				$recaptcha_response_field);		
-		
+
+		$resp = recaptcha_check_answer($this->settings['private_key'], http::realIP(), $_POST["g-recaptcha-response"]);
+
 		if(!$resp->is_valid) {
 			return $resp->error;
 		} else {
 			return (boolean) true;
 		}
 	}
-	
+
 	public function getReCaptchaHtml() {
 		return recaptcha_get_html($this->settings['public_key'],null);
 	}
 
 	public function getReCaptchaJs($lang='fr') {
-		
+
 		$res =
 		'<script type="text/javascript">'."\n".
 		'var RecaptchaOptions = {'."\n".
@@ -92,12 +85,13 @@ class dcReCaptcha
 		'	 theme : \''.$this->settings['theme'].'\''."\n".
 		'};'."\n".
 		'</script>'."\n";
-		
-		return $res;
+
+		//return $res;
+		return "<script src='https://www.google.com/recaptcha/api.js'></script>";
 	}
-	
+
 	public function getApiUrl() {
-		return 'http://www.google.com/recaptcha';
+		return 'https://www.google.com/recaptcha';
 	}
-	
+
 }
